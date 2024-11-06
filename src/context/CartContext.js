@@ -42,7 +42,6 @@ const cartReducer = (state, action) => {
         productsInCart: [],
         totalQuantity: 0,
       };
-      break;
   }
 };
 
@@ -68,6 +67,10 @@ export const CartContextProvider = (props) => {
       product,
     });
   };
+
+  const clearCart = () => {
+    dispatch({ type: 'CLEAR_CART' });
+  };
   console.log(cartState);
 
   return (
@@ -76,6 +79,7 @@ export const CartContextProvider = (props) => {
         productsInCart: cartState.productsInCart,
         totalQuantity: cartState.totalQuantity,
         addCart,
+        clearCart,
       }}
     >
       {props.children}
