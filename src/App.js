@@ -1,24 +1,33 @@
 import logo from './logo.svg';
 import './App.css';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import { Route, Routes } from 'react-router-dom';
+import MemberCreate from './components/MemberCreate';
+import Home from './components/Home';
+import LoginPages from './components/LoginPages';
+import { AuthContextProvide } from './context/UserContext';
+import ProductList from './components/ProductList';
+import { CartContextProvider } from './context/CartContext';
 
 function App() {
   return (
-    <div className='App'>
-      <header className='App-header'>
-        <img src={logo} className='App-logo' alt='logo' />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className='App-link'
-          href='https://reactjs.org'
-          target='_blank'
-          rel='noopener noreferrer'
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AuthContextProvide>
+      <CartContextProvider>
+        <div className='App'>
+          <Header />
+          <div className='content-wrapper'>
+            <Routes>
+              <Route path='/' element={<Home />} />
+              <Route path='/member/create' element={<MemberCreate />} />
+              <Route path='/login' element={<LoginPages />} />
+              <Route path='/product/list' element={<ProductList />} />
+            </Routes>
+          </div>
+          <Footer />
+        </div>
+      </CartContextProvider>
+    </AuthContextProvide>
   );
 }
 
