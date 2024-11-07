@@ -3,18 +3,22 @@ import {
   Button,
   Container,
   Grid,
+  Grid2,
   Toolbar,
   Typography,
 } from '@mui/material';
 import React, { useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthContext from '../context/UserContext';
 
 const Header = () => {
   const { isLoggedIn, onLogout, userRole } = useContext(AuthContext);
+  const navigate = useNavigate();
+
   const handleLogout = () => {
     onLogout();
-    alert('로그아웃 완료');
+    alert('로그아웃 완료!');
+    navigate('/');
   };
 
   return (
@@ -37,7 +41,7 @@ const Header = () => {
                     상품관리
                   </Button>
                   <Button color='inherit' href='/order/list'>
-                    {/* 실시간주문 ({liveQuantity}) */}
+                    실시간주문 ()
                   </Button>
                 </>
               )}
@@ -56,7 +60,6 @@ const Header = () => {
               xs={4}
               style={{ display: 'flex', justifyContent: 'flex-end' }}
             >
-              {' '}
               {isLoggedIn && (
                 <>
                   <Button color='inherit' component={Link} to='/order/cart'>
