@@ -10,15 +10,28 @@ import {
   TableRow,
 } from '@mui/material';
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import axiosInstance from '../configs/axios-config';
+import AuthContext from '../context/UserContext';
+import { useNavigate } from 'react-router-dom';
 
-const Mypage = () => {
-  const [memberInfoList, setMemberList] = useState([]);
+const MyPage = () => {
+  const [memberInfoList, setMemberInfoList] = useState([]);
+  const { onLogout } = useContext(AuthContext);
+  const navigate = useNavigate();
+
   useEffect(() => {
-    //회원정보 불러오기
-
-    const fetchMmeberInfo = async () => {
+    // 회원 정보를 불러오기
+    const fetchMemberInfo = async () => {
+      /*
+        이름, 이메일, 도시, 상세주소 우편번호를 노출해야 합니다.
+        위 5가지 정보를 객체로 포장해서 memberInfoList에 넣어주세요.
+        */
       try {
+        const res = await axiosInstance.get(
+          `${process.env.REACT_APP_API_BASE_URL}/user/myinfo`,
+        );
+        /*
         const res = await axios.get(
           `${process.env.REACT_APP_API_BASE_URL}/user/myinfo`,
           {
@@ -27,11 +40,11 @@ const Mypage = () => {
             },
           },
         );
-        console.log(res.data.result);
-        console.log(res.data.result.id);
+        */
+        console.log(res.data);
 
-        setMemberList([
-          { key: '이름', value: res.data.result.id },
+        setMemberInfoList([
+          { key: '이름', value: res.data.result.name },
           { key: '이메일', value: res.data.result.email },
           { key: '도시', value: res.data.result.address?.city || '등록 전' },
           {
@@ -44,11 +57,20 @@ const Mypage = () => {
           },
         ]);
       } catch (e) {
+        console.log('마이페이지의 캐치문입니당');
         console.log(e);
+        if (e.response.data.statusMessage === 'EXPIRED_RT') {
+          alert('시간이 경과하여 재로그인이 필요합니다');
+          onLogout();
+          navigate('/');
+        } else if (e.response.data.message === 'NO_LOGIN') {
+          alert('로그인행');
+          navigate('/');
+        }
       }
     };
 
-    fetchMmeberInfo();
+    fetchMemberInfo();
   }, []);
 
   return (
@@ -79,4 +101,4 @@ const Mypage = () => {
   );
 };
 
-export default Mypage;
+export default MyPage;

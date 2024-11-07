@@ -13,8 +13,15 @@ import {
 import React, { useContext } from 'react';
 import CartContext from '../context/CartContext';
 import axios from 'axios';
+import axiosInstance from '../configs/axios-config';
+import AuthContext from '../context/UserContext';
+import { useNavigate } from 'react-router-dom';
 
 const OrderPage = () => {
+  const { onLogout } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const { clearCart, productsInCart } = useContext(CartContext);
+
   const removeCartItem = () => {
     if (confirm('장바구니를 비우시겠습니까?')) {
       clearCart();
@@ -57,24 +64,24 @@ const OrderPage = () => {
     // axios는 200번대 정상 응답이 아닌 모든 것을 예외로 처리하기 때문에
     // try, catch로 작성 (fetch는 400번대 응답에도 예외가 발생하진 않음)
     try {
-      const res = await axios.post(
+      const res = await axiosInstance.post(
         `${process.env.REACT_APP_API_BASE_URL}/order/create`,
         orderProducts,
-        {
-          headers: {
-            Authorization: 'Bearer ' + localStorage.getItem('ACCESS_TOKEN'),
-          },
-        },
       );
       alert('주문이 완료되었습니다.');
       clearCart();
     } catch (e) {
       console.log(e);
-      alert('주문실패');
+      if (e.response.data.statusMessage === 'EXPIRED_RT') {
+        alert('시간이 경과하여 재로그인이 필요합니다');
+        onLogout();
+        navigate('/');
+      } else if (e.response.data.message === 'NO_LOGIN') {
+        alert('로그인행');
+        navigate('/');
+      }
     }
   };
-
-  const { clearCart, productsInCart } = useContext(CartContext);
 
   return (
     <Container>

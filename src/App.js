@@ -6,15 +6,15 @@ import { Route, Routes } from 'react-router-dom';
 import MemberCreate from './components/MemberCreate';
 import Home from './components/Home';
 import LoginPages from './components/LoginPages';
-import { AuthContextProvide } from './context/UserContext';
 import ProductList from './components/ProductList';
 import { CartContextProvider } from './context/CartContext';
 import OrderPage from './components/OrderPage';
 import Mypage from './components/Mypage';
+import { AuthContextProvider } from './context/UserContext';
 
 function App() {
   return (
-    <AuthContextProvide>
+    <AuthContextProvider>
       <CartContextProvider>
         <div className='App'>
           <Header />
@@ -31,7 +31,7 @@ function App() {
           <Footer />
         </div>
       </CartContextProvider>
-    </AuthContextProvide>
+    </AuthContextProvider>
   );
 }
 
