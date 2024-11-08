@@ -12,11 +12,15 @@ import {
   Typography,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import axiosInstance from '../configs/axios-config';
+import AuthContext from '../context/UserContext';
+import { useNavigate } from 'react-router-dom';
 
 const OrderListComponent = ({ isAdmin }) => {
   const [orderList, setOrderList] = useState([]);
+  const { onLogout, userRole } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const cancelOrder = async (id) => {
     try {
@@ -35,7 +39,16 @@ const OrderListComponent = ({ isAdmin }) => {
           // return [...filtered, cancelOrder];
         }),
       );
-    } catch (e) {}
+    } catch (e) {
+      if (e.response.data.statusMessage === 'EXPIRED_RT') {
+        alert('시간이 경과하여 재로그인이 필요합니다');
+        onLogout();
+        navigate('/');
+      } else if (e.response.data.message === 'NO_LOGIN') {
+        alert('로그인행');
+        navigate('/');
+      }
+    }
   };
 
   useEffect(() => {

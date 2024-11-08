@@ -18,28 +18,91 @@ import {
 import React, { useContext, useEffect, useState } from 'react';
 import AuthContext from '../context/UserContext';
 import CartContext from '../context/CartContext';
+import axios from 'axios';
+import { throttle } from 'lodash';
 
 const ProductList = ({ pageTitle }) => {
   const [searchType, setSearchType] = useState('optional');
   const [searchValue, setSearchValue] = useState('');
   const [productList, setProductList] = useState([]);
   const [selected, setSelected] = useState({});
+  const [currentPage, setCurrentPage] = useState(0);
+  // 현재 로딩중이냐? -> 백엔드로부터 상품 목록 요청을 보내서 데이터를 받아오는 중인가?
+  const [isLastPage, setLastPage] = useState(false);
+  const pageSize = 25;
+  const [isLoading, setIsLoading] = useState(false);
 
   const { userRole } = useContext(AuthContext);
   const { addCart } = useContext(CartContext);
   const isAdmin = userRole === 'ADMIN';
 
   useEffect(() => {
-    loadProduct();
+    loadProduct(); // 처음 화면에 진입하면 1페이지 내용을 불러온다
+
+    // 쓰로틀링 : 짧은 시간동안 여러번 발생하는 이벤트들을 일정 시간으로 그룹화 하여
+    // 마지막 이벤트 핸들러만 호출하게 하는 기능 - >크르롤 페이징
+    // 디바운싱 : 짧은 시간동안 연속해서 발생한 이벤트를 호출하지 않다가 마지막 이벤트로부터
+    // 일정 시간 이후에 한번만 호출하게 하는 기능 -> 입력값 검증
+    const throttledScroll = throttle(scrollPagination, 1000);
+    window.addEventListener('scroll', throttledScroll);
+
+    // 클린업 함수:다른 컴포넌트가 렌더링 될때 이벤트 해제
+    return () => window.removeEventListener('scroll', throttledScroll);
   }, []);
 
-  const loadProduct = async (number, size) => {
-    const res = await fetch(
-      `${process.env.REACT_APP_API_BASE_URL}/product/list`,
-    );
-    const data = await res.json();
+  // useEffect는 하나의 컴포넌트에서 여러 개 선언이 가능
+  // 스크롤 이벤트에서 다음 페이지 번호를 준비했고,
+  // 상태가 바뀌면 그 때 백엔드로 요청을 보낼 수 있게 로직을 나누었따
+  useEffect(() => {
+    if (currentPage > 0) loadProduct();
+  }, [currentPage]);
 
-    setProductList(data.result);
+  const loadProduct = async () => {
+    // 아직 로딩중이거나 이미 마지막 페이지라면 더 이상 진행 x
+    if (isLoading || isLastPage) return;
+
+    let params = {
+      size: pageSize,
+      page: currentPage,
+    };
+    setIsLoading(true);
+
+    try {
+      const res = await axios.get(
+        `${process.env.REACT_APP_API_BASE_URL}/product/list`,
+        { params },
+      );
+
+      const data = res.data;
+      console.log(data.result);
+
+      const additionalData = data.result.content.map((p) => ({
+        ...p,
+        quantity: 0,
+      }));
+
+      if (additionalData.length === 0) {
+        setLastPage(true);
+      } else {
+        setProductList((prevList) => [...prevList, ...additionalData]);
+      }
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const scrollPagination = () => {
+    const isBottom =
+      // 창의 높이 + 현재 페이지에서 스크롤된 픽셀 값  >= (스크롤이 필요없는) 페이지 전체 높이에서 100px 이내에 도달했는가?
+      window.innerHeight + document.documentElement.scrollTop >=
+      document.documentElement.scrollHeight - 100;
+
+    if (isBottom && !isLastPage && !isLoading) {
+      // 스크롤이 특정 구잔에 도달하면 바로 요청 보내는게 아니라 다음 페이지 번호를 준비
+      setCurrentPage((prevPage) => prevPage + 1);
+    }
   };
 
   // 장바구니 클릭 이벤트 핸들러
