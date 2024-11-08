@@ -12,6 +12,7 @@ import React, { useContext, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../configs/axios-config';
 import AuthContext from '../context/UserContext';
+import { hadleAxiosError } from '../configs/HandleAxiosError';
 
 const ProductCreate = () => {
   const [name, setName] = useState('');
@@ -51,14 +52,7 @@ const ProductCreate = () => {
     } catch (e) {
       console.log(e);
 
-      if (e.response.data.statusMessage === 'EXPIRED_RT') {
-        alert('시간이 경과하여 재로그인이 필요합니다');
-        onLogout();
-        navigate('/');
-      } else if (e.response.data.message === 'NO_LOGIN') {
-        alert('로그인행');
-        navigate('/');
-      }
+      hadleAxiosError(e, onLogout, navigate);
     }
   };
   const fileUpdate = (e) => {

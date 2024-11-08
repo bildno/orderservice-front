@@ -65,6 +65,13 @@ const ProductList = ({ pageTitle }) => {
       size: pageSize,
       page: currentPage,
     };
+
+    // 사용자가 조건을 선택했고, 검색어를 입력했다면 프로퍼티를 추가
+    if (searchType !== 'optional' && searchValue) {
+      params.category = searchType;
+      params.searchName = searchValue;
+    }
+
     setIsLoading(true);
 
     try {
@@ -148,6 +155,16 @@ const ProductList = ({ pageTitle }) => {
     }));
   };
 
+  // 검색 버튼 클릭 이벤트 핸들러 (form submit)
+  const searchBtnHandler = (e) => {
+    e.preventDefault();
+    setProductList([]);
+    setCurrentPage(0);
+    setLastPage(false);
+    setIsLoading(false);
+    loadProduct();
+  };
+
   return (
     <Container>
       <Grid
@@ -157,12 +174,7 @@ const ProductList = ({ pageTitle }) => {
         className='mt-5'
       >
         <Grid item>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              loadProduct();
-            }}
-          >
+          <form onSubmit={searchBtnHandler}>
             <Grid container spacing={2}>
               <Grid item>
                 <Select

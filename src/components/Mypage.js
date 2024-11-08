@@ -15,6 +15,7 @@ import axiosInstance from '../configs/axios-config';
 import AuthContext from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import OrderListComponent from './OrderListComponent';
+import { hadleAxiosError } from '../configs/HandleAxiosError';
 
 const MyPage = () => {
   const [memberInfoList, setMemberInfoList] = useState([]);
@@ -70,14 +71,7 @@ const MyPage = () => {
       } catch (e) {
         console.log('마이페이지의 캐치문입니당');
         console.log(e);
-        if (e.response.data.statusMessage === 'EXPIRED_RT') {
-          alert('시간이 경과하여 재로그인이 필요합니다');
-          onLogout();
-          navigate('/');
-        } else if (e.response.data.message === 'NO_LOGIN') {
-          alert('로그인행');
-          navigate('/');
-        }
+        hadleAxiosError(e, onLogout, navigate);
       }
     };
 
